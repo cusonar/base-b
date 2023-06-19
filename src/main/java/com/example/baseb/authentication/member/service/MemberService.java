@@ -18,10 +18,10 @@ public class MemberService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return memberRepository.findById(username).orElseThrow(() -> new UsernameNotFoundException(username));
+        return memberRepository.getMemberWithAuthorities(username).orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
-    public String join(MemberJoinDto dto) {
+    public String join(JoinRequestDto dto) {
         PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
         Member member = dto.toEntity();

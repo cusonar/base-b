@@ -11,7 +11,7 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-public class MemberJoinDto {
+public class JoinRequestDto {
 
     private String id;
     private String password;

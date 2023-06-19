@@ -1,15 +1,27 @@
 package com.example.baseb.config.security;
 
+import com.example.baseb.authentication.member.MemberRepository;
+import com.example.baseb.authentication.member.service.MemberService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
+@RequiredArgsConstructor
+@Slf4j
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
+
+    private final MemberService memberService;
 
     @Override
     public Authentication authenticate(Authentication authentication)
@@ -18,15 +30,26 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
 
-        if (shouldAuthenticateAgainstThirdPartySystem()) {
+        UserDetails userDetails = memberService.loadUserByUsername(name);
 
-            // use the credentials
-            // and authenticate against the third-party system
-            return new UsernamePasswordAuthenticationToken(
-                    name, password, new ArrayList<>());
+        PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+
+        if (passwordEncoder.matches(password, userDetails.getPassword())) {
+            return new UsernamePasswordAuthenticationToken(name, password, new ArrayList<>());
         } else {
-            return null;
+            log.error("Wrong password: {}", name);
+            throw new BadCredentialsException(name);
         }
+
+//        if (shouldAuthenticateAgainstThirdPartySystem()) {
+//
+//            // use the credentials
+//            // and authenticate against the third-party system
+//            return new UsernamePasswordAuthenticationToken(
+//                    name, password, new ArrayList<>());
+//        } else {
+//            return null;
+//        }
     }
 
     private boolean shouldAuthenticateAgainstThirdPartySystem() {
